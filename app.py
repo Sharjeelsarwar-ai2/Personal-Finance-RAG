@@ -127,9 +127,7 @@ def render_settings_panel():
         model = st.selectbox(
             "model_select",
             [
-                "llama-3.3-70b-versatile",
-                "llama-3.1-8b-instant",
-                "meta-llama/llama-4-scout-17b-16e-instruct",
+                "openai/gpt-oss-120b",
                 "gemma2-9b-it",
                 "mixtral-8x7b-32768"
             ],
