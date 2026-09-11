@@ -7,10 +7,9 @@ from ui_components import (
     render_header, 
     render_file_item, 
     render_chat_message,
-    render_chat_spacer,       # <--- Added spacer import
+    render_chat_spacer,       
     render_pipeline_horizontal, 
-    render_upload_zone, 
-    render_top_nav
+    render_upload_zone
 )
 
 # ===== PAGE CONFIG =====
@@ -38,7 +37,7 @@ def init_session_state():
         "groq_api_key": "",
         "is_indexed": False, 
         "show_settings": False, 
-        "selected_model": "openai/gpt-oss-120b"
+        "selected_model": "gpt-oss-120b"
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -47,20 +46,55 @@ def init_session_state():
 init_session_state()
 
 
-# ===== TOP NAVIGATION WITH SETTINGS =====
+# ===== INLINE TOP NAVIGATION (ALL ON ONE ROW) =====
 def render_top_bar():
-    render_top_nav(st.session_state.is_indexed, st.session_state.pipeline_status, bool(st.session_state.groq_api_key))
-    col1, col2, col3 = st.columns([7, 1.5, 1.5])
+    # Streamlit column layout for perfect horizontal alignment
+    c_logo, c_status, c_set, c_res = st.columns([3, 4, 1.2, 1.2], vertical_alignment="center")
     
-    with col2:
-        if st.button("⚙️ Settings", use_container_width=True):
+    with c_logo:
+        st.markdown("""
+        <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:1.5rem;">💰</span>
+            <span style="font-size:1.15rem; font-weight:700; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">FinanceRAG Analyzer</span>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with c_status:
+        # Determine Status Pill states
+        is_indexed = st.session_state.is_indexed
+        status = st.session_state.pipeline_status
+        has_api = bool(st.session_state.groq_api_key)
+        
+        if is_indexed: s_dot, s_text = "#00ff88", "Ready"
+        elif status == "processing": s_dot, s_text = "#ffc107", "Processing"
+        else: s_dot, s_text = "#ff5252", "Awaiting Upload"
+        
+        api_dot, api_text = ("#00ff88", "API Connected") if has_api else ("#ff5252", "API Not Set")
+        
+        st.markdown(f"""
+        <div style="display:flex; gap:10px; align-items:center; justify-content: flex-end;">
+            <div style="display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.03); padding:4px 12px; border-radius:15px; border:1px solid rgba(255,255,255,0.05); font-size:0.75rem; color:rgba(255,255,255,0.7);">
+                <div style="width:7px; height:7px; border-radius:50%; background:{api_dot}; box-shadow:0 0 6px {api_dot};"></div> {api_text}
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.03); padding:4px 12px; border-radius:15px; border:1px solid rgba(255,255,255,0.05); font-size:0.75rem; color:rgba(255,255,255,0.7);">
+                <div style="width:7px; height:7px; border-radius:50%; background:{s_dot}; box-shadow:0 0 6px {s_dot};"></div> {s_text}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with c_set:
+        # Using type="secondary" maps to our subtle glassmorphic button CSS
+        if st.button("⚙️ Settings", type="secondary", use_container_width=True):
             st.session_state.show_settings = not st.session_state.show_settings
             
-    with col3:
-        if st.button("🔄 Reset", use_container_width=True):
+    with c_res:
+        if st.button("🔄 Reset", type="secondary", use_container_width=True):
             for key in list(st.session_state.keys()):
                 del st.session_state[key]
             st.rerun()
+            
+    # Subtle divider
+    st.markdown('<div style="height:1px; background:rgba(255,255,255,0.05); margin: 5px 0 15px 0;"></div>', unsafe_allow_html=True)
 
 
 def render_settings_panel():
@@ -87,7 +121,7 @@ def render_settings_panel():
         st.markdown('<div class="settings-label">🧠 LLM Model</div>', unsafe_allow_html=True)
         model = st.selectbox(
             "model_select", 
-            ["openai/gpt-oss-120b", "llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"], 
+            ["gpt-oss-120b", "llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"], 
             index=0, 
             label_visibility="collapsed"
         )
@@ -95,7 +129,8 @@ def render_settings_panel():
     
     col_x, col_y, col_z = st.columns([4, 1, 4])
     with col_y:
-        if st.button("✕ Close", use_container_width=True):
+        # Subtle close button
+        if st.button("✕ Close", type="secondary", use_container_width=True):
             st.session_state.show_settings = False
             st.rerun()
             
@@ -163,10 +198,9 @@ def main():
         st.markdown('<div class="glass-container">', unsafe_allow_html=True)
         st.markdown("""<h3 style="color: rgba(255,255,255,0.85); font-weight: 600; margin-bottom: 5px;">💬 Ask Your Documents</h3>""", unsafe_allow_html=True)
 
-        # Chat display area
         if not st.session_state.messages:
             st.markdown("""
-            <div style="text-align: center; padding: 60px 20px;">
+            <div style="text-align: center; padding: 40px 20px;">
                 <div style="font-size: 3rem; margin-bottom: 15px;">📊</div>
                 <p style="color: rgba(255,255,255,0.4); font-size: 1rem;">Upload documents in the 'RAG Data Management' tab to begin.</p>
             </div>
@@ -177,10 +211,8 @@ def main():
 
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # 🚀 SPACER: This pushes the last message up so it doesn't hide behind the floating input
         render_chat_spacer()
 
-        # Chat Input (Floating at bottom because of the CSS in ui_components.py)
         if st.session_state.is_indexed:
             query = st.chat_input("Ask about your financial documents...", key="chat_input")
             if query:
@@ -211,7 +243,8 @@ def main():
             )
             
             if uploaded_files:
-                if st.button("🚀 Process & Index Documents", use_container_width=True):
+                # Using type="primary" gives this button the bright blue action color
+                if st.button("🚀 Process & Index Documents", type="primary", use_container_width=True):
                     process_uploaded_files(uploaded_files, st.session_state.selected_model)
                     st.rerun()
             else:
@@ -223,7 +256,6 @@ def main():
             st.markdown('<div class="glass-container">', unsafe_allow_html=True)
             st.markdown("### 📊 Pipeline Status")
             
-            # Pipeline Visualizer
             s = st.session_state.pipeline_status
             steps = {
                 "Upload": "done" if s in ["processing", "ready"] else "", 
@@ -242,7 +274,6 @@ def main():
                 st.markdown("<p style='color:gray;'>No files indexed yet.</p>", unsafe_allow_html=True)
                 
             st.markdown('</div>', unsafe_allow_html=True)
-
 
 if __name__ == "__main__":
     main()
