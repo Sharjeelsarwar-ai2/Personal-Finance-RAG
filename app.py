@@ -40,7 +40,7 @@ def init_session_state():
         "groq_api_key": "",
         "is_indexed": False,
         "show_settings": False,
-        "selected_model": "llama-3.3-70b-versatile"
+        "selected_model": "openai/gpt-oss-120b"
     }
     for key, value in defaults.items():
         if key not in st.session_state:
