@@ -44,7 +44,7 @@ class RAGEngine:
     """
 
     # UPDATE: Set default model to gpt-oss-120b
-    def __init__(self, groq_api_key: str, model_name: str = "gpt-oss-120b"):
+    def __init__(self, groq_api_key: str, model_name: str = "openai/gpt-oss-120b"):
         # Embedding model (open-source, runs locally)
         self.embed_model_name = "all-MiniLM-L6-v2"
         self.embed_model = None  # Lazy load
