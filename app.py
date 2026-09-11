@@ -37,7 +37,7 @@ def init_session_state():
         "groq_api_key": "",
         "is_indexed": False, 
         "show_settings": False, 
-        "selected_model": "gpt-oss-120b"
+        "selected_model": "openai/gpt-oss-120b"
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -121,7 +121,7 @@ def render_settings_panel():
         st.markdown('<div class="settings-label">🧠 LLM Model</div>', unsafe_allow_html=True)
         model = st.selectbox(
             "model_select", 
-            ["gpt-oss-120b", "llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"], 
+            ["openai/gpt-oss-120b", "llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"], 
             index=0, 
             label_visibility="collapsed"
         )
