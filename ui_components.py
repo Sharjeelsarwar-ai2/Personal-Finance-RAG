@@ -21,6 +21,81 @@ def inject_custom_css():
         footer {visibility: hidden;}
         header {visibility: hidden;}
         .stDeployButton {display: none;}
+        
+        /* Hide sidebar completely */
+        section[data-testid="stSidebar"] {display: none !important;}
+        div[data-testid="collapsedControl"] {display: none !important;}
+
+        /* Adjust main content to full width */
+        .main .block-container {
+            padding-top: 1rem;
+            padding-left: 2rem;
+            padding-right: 2rem;
+            max-width: 100%;
+        }
+
+        /* ===== TOP NAVIGATION BAR ===== */
+        .top-nav {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 14px 24px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-logo {
+            font-size: 1.6rem;
+        }
+
+        .nav-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-status {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .status-pill .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .dot-green { background: #00ff88; box-shadow: 0 0 8px #00ff88; }
+        .dot-yellow { background: #ffc107; box-shadow: 0 0 8px #ffc107; }
+        .dot-red { background: #ff5252; box-shadow: 0 0 8px #ff5252; }
 
         /* ===== GLASSMORPHIC CONTAINERS ===== */
         .glass-container {
@@ -40,14 +115,61 @@ def inject_custom_css():
             box-shadow: 0 8px 40px rgba(79, 172, 254, 0.1);
         }
 
+        /* ===== SETTINGS PANEL (Expandable) ===== */
+        .settings-panel {
+            background: rgba(15, 15, 35, 0.7);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(79, 172, 254, 0.2);
+            border-radius: 20px;
+            padding: 25px 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(79, 172, 254, 0.15);
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .settings-title {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .settings-subtitle {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+        }
+
+        .settings-section {
+            margin: 15px 0;
+        }
+
+        .settings-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
         /* ===== HEADER STYLING ===== */
         .main-header {
             text-align: center;
-            padding: 40px 20px 20px 20px;
+            padding: 20px 20px 15px 20px;
         }
 
         .main-header h1 {
-            font-size: 2.8rem;
+            font-size: 2.4rem;
             font-weight: 800;
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 50%, #a8edea 100%);
             -webkit-background-clip: text;
@@ -59,7 +181,7 @@ def inject_custom_css():
 
         .main-header p {
             color: rgba(255, 255, 255, 0.5);
-            font-size: 1.05rem;
+            font-size: 1rem;
             font-weight: 300;
             letter-spacing: 0.5px;
         }
@@ -205,18 +327,6 @@ def inject_custom_css():
             color: rgba(168, 237, 234, 0.9);
         }
 
-        /* ===== SIDEBAR STYLING ===== */
-        section[data-testid="stSidebar"] {
-            background: rgba(10, 10, 26, 0.95) !important;
-            backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        section[data-testid="stSidebar"] .stMarkdown h3 {
-            color: rgba(255, 255, 255, 0.8);
-            font-weight: 600;
-        }
-
         /* ===== FILE LIST ===== */
         .file-item {
             background: rgba(255, 255, 255, 0.04);
@@ -298,47 +408,50 @@ def inject_custom_css():
             transform: translateY(-1px);
         }
 
-        /* ===== PIPELINE STEPS ===== */
-        .pipeline-step {
+        /* ===== PIPELINE STEPS (Horizontal) ===== */
+        .pipeline-horizontal {
             display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 8px 0;
-            color: rgba(255, 255, 255, 0.5);
-            font-size: 0.85rem;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 15px 0;
+            flex-wrap: wrap;
         }
 
-        .pipeline-step.active {
-            color: rgba(79, 172, 254, 0.9);
+        .pipeline-step-h {
+            flex: 1;
+            min-width: 120px;
+            text-align: center;
+            padding: 12px 8px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
         }
 
-        .pipeline-step.done {
-            color: rgba(0, 255, 136, 0.8);
+        .pipeline-step-h.done {
+            background: rgba(0, 255, 136, 0.05);
+            border-color: rgba(0, 255, 136, 0.2);
         }
 
-        .step-number {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .pipeline-step-h.active {
+            background: rgba(79, 172, 254, 0.08);
+            border-color: rgba(79, 172, 254, 0.3);
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.15);
+        }
+
+        .step-icon-h {
+            font-size: 1.2rem;
+            margin-bottom: 6px;
+        }
+
+        .step-name-h {
             font-size: 0.75rem;
-            font-weight: 700;
-            border: 2px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 500;
         }
 
-        .step-number.active {
-            border-color: #4facfe;
-            color: #4facfe;
-            box-shadow: 0 0 15px rgba(79, 172, 254, 0.3);
-        }
-
-        .step-number.done {
-            border-color: #00ff88;
-            color: #00ff88;
-            background: rgba(0, 255, 136, 0.1);
-        }
+        .pipeline-step-h.done .step-name-h { color: rgba(0, 255, 136, 0.9); }
+        .pipeline-step-h.active .step-name-h { color: rgba(79, 172, 254, 0.9); }
 
         /* ===== BUTTON OVERRIDES ===== */
         .stButton > button {
@@ -346,7 +459,7 @@ def inject_custom_css():
             color: #0a0a1a !important;
             border: none !important;
             border-radius: 12px !important;
-            padding: 12px 30px !important;
+            padding: 10px 24px !important;
             font-weight: 600 !important;
             font-size: 0.9rem !important;
             letter-spacing: 0.5px !important;
@@ -357,6 +470,20 @@ def inject_custom_css():
         .stButton > button:hover {
             transform: translateY(-2px) !important;
             box-shadow: 0 6px 25px rgba(79, 172, 254, 0.5) !important;
+        }
+
+        /* Secondary button style */
+        .stButton > button[kind="secondary"] {
+            background: rgba(255, 255, 255, 0.05) !important;
+            color: rgba(255, 255, 255, 0.8) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            box-shadow: none !important;
+        }
+
+        .stButton > button[kind="secondary"]:hover {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: rgba(79, 172, 254, 0.3) !important;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.15) !important;
         }
 
         /* ===== TEXT INPUT ===== */
@@ -374,6 +501,14 @@ def inject_custom_css():
         .stChatInput > div > div > textarea:focus {
             border-color: rgba(79, 172, 254, 0.5) !important;
             box-shadow: 0 0 20px rgba(79, 172, 254, 0.15) !important;
+        }
+
+        /* ===== SELECTBOX ===== */
+        .stSelectbox > div > div {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 14px !important;
+            color: white !important;
         }
 
         /* ===== FILE UPLOADER ===== */
@@ -404,11 +539,11 @@ def inject_custom_css():
         .custom-divider {
             height: 1px;
             background: linear-gradient(90deg, transparent, rgba(79, 172, 254, 0.3), transparent);
-            margin: 25px 0;
+            margin: 20px 0;
             border: none;
         }
 
-        /* ===== WARNING / INFO BOXES ===== */
+        /* ===== INFO/WARNING BOXES ===== */
         .info-box {
             background: rgba(79, 172, 254, 0.06);
             border-left: 3px solid #4facfe;
@@ -428,7 +563,52 @@ def inject_custom_css():
             color: rgba(255, 255, 255, 0.7);
             font-size: 0.88rem;
         }
+
+        /* ===== FILE GRID ===== */
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 10px 0;
+        }
     </style>
+    """, unsafe_allow_html=True)
+
+
+def render_top_nav(is_indexed: bool, pipeline_status: str, has_api_key: bool):
+    """Render the top navigation bar with status pills"""
+    
+    # Determine status
+    if is_indexed:
+        status_dot = "dot-green"
+        status_text = "Ready"
+    elif pipeline_status == "processing":
+        status_dot = "dot-yellow"
+        status_text = "Processing"
+    else:
+        status_dot = "dot-red"
+        status_text = "Awaiting Upload"
+    
+    api_dot = "dot-green" if has_api_key else "dot-red"
+    api_text = "API Connected" if has_api_key else "API Not Set"
+    
+    st.markdown(f"""
+    <div class="top-nav">
+        <div class="nav-brand">
+            <span class="nav-logo">💰</span>
+            <span class="nav-title">FinanceRAG Analyzer</span>
+        </div>
+        <div class="nav-status">
+            <div class="status-pill">
+                <span class="dot {api_dot}"></span>
+                <span>{api_text}</span>
+            </div>
+            <div class="status-pill">
+                <span class="dot {status_dot}"></span>
+                <span>{status_text}</span>
+            </div>
+        </div>
+    </div>
     """, unsafe_allow_html=True)
 
 
@@ -436,10 +616,9 @@ def render_header():
     """Render the main header"""
     st.markdown("""
     <div class="main-header">
-        <h1>💰 FinanceRAG Analyzer</h1>
-        <p>Upload your financial documents • Ask questions • Get precise answers from YOUR data</p>
+        <h1>Ask Your Financial Documents Anything</h1>
+        <p>Upload documents • Get precise answers • Zero hallucination — 100% grounded in your data</p>
     </div>
-    <div class="custom-divider"></div>
     """, unsafe_allow_html=True)
 
 
@@ -467,12 +646,8 @@ def render_metrics(docs_count: int, chunks_count: int, status: str):
 def render_file_item(filename: str, file_size: float, file_type: str):
     """Render a single file item"""
     icons = {
-        "pdf": "📄",
-        "csv": "📊",
-        "xlsx": "📈",
-        "xls": "📈",
-        "txt": "📝",
-        "docx": "📋"
+        "pdf": "📄", "csv": "📊", "xlsx": "📈",
+        "xls": "📈", "txt": "📝", "docx": "📋"
     }
     icon = icons.get(file_type.lower(), "📎")
     size_str = f"{file_size:.1f} KB" if file_size < 1024 else f"{file_size/1024:.1f} MB"
@@ -516,8 +691,8 @@ def render_chat_message(role: str, content: str, sources: list = None):
 
 
 def render_suggestion_chips():
-    """Render suggestion query chips"""
-    suggestions = [
+    """Return list of suggested queries"""
+    return [
         "What is my total income?",
         "Summarize my expenses by category",
         "What deductions can I claim?",
@@ -525,33 +700,38 @@ def render_suggestion_chips():
         "Show my monthly spending trend",
         "Any recurring payments found?"
     ]
-    return suggestions
 
 
-def render_pipeline_status(steps: dict):
-    """Render processing pipeline steps"""
-    html = ""
+def render_pipeline_horizontal(steps: dict):
+    """Render horizontal pipeline steps"""
+    html = '<div class="pipeline-horizontal">'
+    
+    icons_map = {
+        "Upload": "📤",
+        "Extract": "🔍",
+        "Chunk": "✂️",
+        "Embed": "🧬",
+        "Index": "🗄️",
+        "Ready": "✅"
+    }
+    
     for step_name, status in steps.items():
+        cls = status  # "done", "active", or ""
+        icon = icons_map.get(step_name, "○")
+        
         if status == "done":
-            cls = "done"
-            num_cls = "done"
             icon = "✓"
         elif status == "active":
-            cls = "active"
-            num_cls = "active"
             icon = "⟳"
-        else:
-            cls = ""
-            num_cls = ""
-            icon = "○"
-
+        
         html += f"""
-        <div class="pipeline-step {cls}">
-            <div class="step-number {num_cls}">{icon}</div>
-            <span>{step_name}</span>
+        <div class="pipeline-step-h {cls}">
+            <div class="step-icon-h">{icon}</div>
+            <div class="step-name-h">{step_name}</div>
         </div>
         """
-
+    
+    html += '</div>'
     st.markdown(html, unsafe_allow_html=True)
 
 
