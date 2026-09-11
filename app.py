@@ -3,9 +3,14 @@ import time
 from document_processor import DocumentProcessor
 from rag_engine import RAGEngine
 from ui_components import (
-    inject_custom_css, render_header, render_metrics,
-    render_file_item, render_chat_message,
-    render_pipeline_horizontal, render_upload_zone, render_top_nav
+    inject_custom_css, 
+    render_header, 
+    render_file_item, 
+    render_chat_message,
+    render_chat_spacer,       # <--- Added spacer import
+    render_pipeline_horizontal, 
+    render_upload_zone, 
+    render_top_nav
 )
 
 # ===== PAGE CONFIG =====
@@ -16,15 +21,24 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+# Inject custom CSS
 inject_custom_css()
 
 # ===== SESSION STATE INITIALIZATION =====
 def init_session_state():
     defaults = {
-        "doc_processor": None, "rag_engine": None, "chat_history": [],
-        "messages": [], "docs_processed": 0, "chunks_count": 0,
-        "pipeline_status": "idle", "processed_files": [], "groq_api_key": "",
-        "is_indexed": False, "show_settings": False, "selected_model": "gpt-oss-120b"
+        "doc_processor": None, 
+        "rag_engine": None, 
+        "chat_history": [],
+        "messages": [], 
+        "docs_processed": 0, 
+        "chunks_count": 0,
+        "pipeline_status": "idle", 
+        "processed_files": [], 
+        "groq_api_key": "",
+        "is_indexed": False, 
+        "show_settings": False, 
+        "selected_model": "openai/gpt-oss-120b"
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -32,36 +46,51 @@ def init_session_state():
 
 init_session_state()
 
+
 # ===== TOP NAVIGATION WITH SETTINGS =====
 def render_top_bar():
     render_top_nav(st.session_state.is_indexed, st.session_state.pipeline_status, bool(st.session_state.groq_api_key))
     col1, col2, col3 = st.columns([7, 1.5, 1.5])
+    
     with col2:
         if st.button("⚙️ Settings", use_container_width=True):
             st.session_state.show_settings = not st.session_state.show_settings
+            
     with col3:
         if st.button("🔄 Reset", use_container_width=True):
             for key in list(st.session_state.keys()):
                 del st.session_state[key]
             st.rerun()
 
+
 def render_settings_panel():
-    if not st.session_state.show_settings: return
+    if not st.session_state.show_settings: 
+        return
     
     st.markdown('<div class="settings-panel">', unsafe_allow_html=True)
     st.markdown('<div class="settings-title">⚙️ Configuration</div>', unsafe_allow_html=True)
     
     col_a, col_b = st.columns([1, 1])
+    
     with col_a:
         st.markdown('<div class="settings-label">🔑 Groq API Key</div>', unsafe_allow_html=True)
         api_key = st.text_input("api_key", type="password", value=st.session_state.groq_api_key, label_visibility="collapsed")
+        
         if api_key != st.session_state.groq_api_key:
             st.session_state.groq_api_key = api_key
             st.session_state.rag_engine = None
-        if not api_key: st.markdown('<div style="color:#ff5252; font-size:0.8rem; margin-top:5px;">Required for AI features</div>', unsafe_allow_html=True)
+            
+        if not api_key: 
+            st.markdown('<div style="color:#ff5252; font-size:0.8rem; margin-top:5px;">Required for AI features</div>', unsafe_allow_html=True)
+            
     with col_b:
         st.markdown('<div class="settings-label">🧠 LLM Model</div>', unsafe_allow_html=True)
-        model = st.selectbox("model_select", ["gpt-oss-120b", "llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"], index=0, label_visibility="collapsed")
+        model = st.selectbox(
+            "model_select", 
+            ["openai/gpt-oss-120b", "llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"], 
+            index=0, 
+            label_visibility="collapsed"
+        )
         st.session_state.selected_model = model
     
     col_x, col_y, col_z = st.columns([4, 1, 4])
@@ -69,7 +98,9 @@ def render_settings_panel():
         if st.button("✕ Close", use_container_width=True):
             st.session_state.show_settings = False
             st.rerun()
+            
     st.markdown('</div>', unsafe_allow_html=True)
+
 
 # ===== DOCUMENT PROCESSING =====
 def process_uploaded_files(uploaded_files, model: str):
@@ -81,6 +112,7 @@ def process_uploaded_files(uploaded_files, model: str):
     doc_processor = DocumentProcessor()
     
     progress_container = st.empty()
+    
     with progress_container.container():
         st.markdown('<div class="glass-container">', unsafe_allow_html=True)
         st.markdown("#### 📥 Stage 1: Extracting Documents...")
@@ -114,14 +146,12 @@ def process_uploaded_files(uploaded_files, model: str):
     st.session_state.is_indexed = True
     st.session_state.processed_files = doc_processor.get_doc_summaries()
 
+
 # ===== MAIN APP =====
 def main():
     render_top_bar()
     render_settings_panel()
     render_header()
-
-    status_text = "Ready" if st.session_state.is_indexed else ("Processing" if st.session_state.pipeline_status == "processing" else "Waiting")
-    render_metrics(st.session_state.docs_processed, st.session_state.chunks_count, status_text)
 
     # ==========================================
     # TABS FOR UI SEPARATION
@@ -133,7 +163,7 @@ def main():
         st.markdown('<div class="glass-container">', unsafe_allow_html=True)
         st.markdown("""<h3 style="color: rgba(255,255,255,0.85); font-weight: 600; margin-bottom: 5px;">💬 Ask Your Documents</h3>""", unsafe_allow_html=True)
 
-        # Chat display
+        # Chat display area
         if not st.session_state.messages:
             st.markdown("""
             <div style="text-align: center; padding: 60px 20px;">
@@ -147,7 +177,10 @@ def main():
 
         st.markdown('</div>', unsafe_allow_html=True)
 
-        # Chat Input
+        # 🚀 SPACER: This pushes the last message up so it doesn't hide behind the floating input
+        render_chat_spacer()
+
+        # Chat Input (Floating at bottom because of the CSS in ui_components.py)
         if st.session_state.is_indexed:
             query = st.chat_input("Ask about your financial documents...", key="chat_input")
             if query:
@@ -162,6 +195,7 @@ def main():
         else:
             st.info("📤 Go to 'RAG Data Management' tab to upload documents first.")
 
+
     # ----- TAB 2: RAG MANAGEMENT -----
     with tab_data:
         col1, col2 = st.columns([1, 1], gap="large")
@@ -169,13 +203,20 @@ def main():
         with col1:
             st.markdown('<div class="glass-container">', unsafe_allow_html=True)
             st.markdown("### 📁 Upload Data")
-            uploaded_files = st.file_uploader("Upload docs", type=["pdf", "csv", "xlsx", "txt", "docx"], accept_multiple_files=True, label_visibility="collapsed")
+            uploaded_files = st.file_uploader(
+                "Upload docs", 
+                type=["pdf", "csv", "xlsx", "txt", "docx"], 
+                accept_multiple_files=True, 
+                label_visibility="collapsed"
+            )
+            
             if uploaded_files:
                 if st.button("🚀 Process & Index Documents", use_container_width=True):
                     process_uploaded_files(uploaded_files, st.session_state.selected_model)
                     st.rerun()
             else:
                 render_upload_zone()
+                
             st.markdown('</div>', unsafe_allow_html=True)
 
         with col2:
@@ -184,11 +225,13 @@ def main():
             
             # Pipeline Visualizer
             s = st.session_state.pipeline_status
-            steps = {"Upload": "done" if s in ["processing", "ready"] else "", 
-                     "Extract": "active" if s == "processing" else ("done" if s == "ready" else ""),
-                     "Chunk": "done" if s == "ready" else "", 
-                     "Embed": "done" if s == "ready" else "",
-                     "Index": "done" if s == "ready" else ""}
+            steps = {
+                "Upload": "done" if s in ["processing", "ready"] else "", 
+                "Extract": "active" if s == "processing" else ("done" if s == "ready" else ""),
+                "Chunk": "done" if s == "ready" else "", 
+                "Embed": "done" if s == "ready" else "",
+                "Index": "done" if s == "ready" else ""
+            }
             render_pipeline_horizontal(steps)
             
             st.markdown("### 📚 Indexed Files")
@@ -197,7 +240,9 @@ def main():
                     render_file_item(f["filename"], f["file_size"], f["file_type"])
             else:
                 st.markdown("<p style='color:gray;'>No files indexed yet.</p>", unsafe_allow_html=True)
+                
             st.markdown('</div>', unsafe_allow_html=True)
+
 
 if __name__ == "__main__":
     main()
