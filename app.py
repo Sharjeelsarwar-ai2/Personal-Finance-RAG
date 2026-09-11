@@ -273,53 +273,5 @@ def main():
         else:
             st.info("📤 Go to 'RAG Data Management' tab to upload documents first.")
 
-
-    # ----- TAB 2: RAG MANAGEMENT -----
-    with tab_data:
-        col1, col2 = st.columns([1, 1], gap="large")
-        
-        with col1:
-            st.markdown('<div class="glass-container">', unsafe_allow_html=True)
-            st.markdown("### 📁 Upload Data")
-            uploaded_files = st.file_uploader(
-                "Upload docs", 
-                type=["pdf", "csv", "xlsx", "txt", "docx"], 
-                accept_multiple_files=True, 
-                label_visibility="collapsed"
-            )
-            
-            if uploaded_files:
-                # Using type="primary" gives this button the bright blue action color
-                if st.button("🚀 Process & Index Documents", type="primary", use_container_width=True):
-                    process_uploaded_files(uploaded_files, st.session_state.selected_model)
-                    st.rerun()
-            else:
-                render_upload_zone()
-                
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        with col2:
-            st.markdown('<div class="glass-container">', unsafe_allow_html=True)
-            st.markdown("### 📊 Pipeline Status")
-            
-            s = st.session_state.pipeline_status
-            steps = {
-                "Upload": "done" if s in ["processing", "ready"] else "", 
-                "Extract": "active" if s == "processing" else ("done" if s == "ready" else ""),
-                "Chunk": "done" if s == "ready" else "", 
-                "Embed": "done" if s == "ready" else "",
-                "Index": "done" if s == "ready" else ""
-            }
-            render_pipeline_horizontal(steps)
-            
-            st.markdown("### 📚 Indexed Files")
-            if st.session_state.processed_files:
-                for f in st.session_state.processed_files:
-                    render_file_item(f["filename"], f["file_size"], f["file_type"])
-            else:
-                st.markdown("<p style='color:gray;'>No files indexed yet.</p>", unsafe_allow_html=True)
-                
-            st.markdown('</div>', unsafe_allow_html=True)
-
 if __name__ == "__main__":
     main()
