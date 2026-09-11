@@ -2,7 +2,11 @@ import os
 import re
 import pandas as pd
 import pdfplumber
-from PyPDF2 import PdfReader
+# NEW (Works with both modern pypdf and PyPDF2):
+try:
+    from pypdf import PdfReader
+except ImportError:
+    from PyPDF2 import PdfReader
 from typing import List, Dict, Tuple
 import io
 
