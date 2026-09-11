@@ -189,11 +189,57 @@ def main():
     render_header()
 
     # ==========================================
-    # TABS FOR UI SEPARATION
+    # TABS — RAG Management FIRST, then Query
     # ==========================================
-    tab_chat, tab_data = st.tabs(["💬 Query Console", "🗄️ RAG Data Management"])
+    tab_data, tab_chat = st.tabs(["🗄️ RAG Data Management", "💬 Query Console"])
 
-    # ----- TAB 1: USER CHAT QUERIES -----
+    # ----- TAB 1: RAG MANAGEMENT (Upload first) -----
+    with tab_data:
+        col1, col2 = st.columns([1, 1], gap="large")
+        
+        with col1:
+            st.markdown('<div class="glass-container">', unsafe_allow_html=True)
+            st.markdown("### 📁 Upload Data")
+            uploaded_files = st.file_uploader(
+                "Upload docs", 
+                type=["pdf", "csv", "xlsx", "txt", "docx"], 
+                accept_multiple_files=True, 
+                label_visibility="collapsed"
+            )
+            
+            if uploaded_files:
+                if st.button("🚀 Process & Index Documents", type="primary", use_container_width=True):
+                    process_uploaded_files(uploaded_files, st.session_state.selected_model)
+                    st.rerun()
+            else:
+                render_upload_zone()
+                
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        with col2:
+            st.markdown('<div class="glass-container">', unsafe_allow_html=True)
+            st.markdown("### 📊 Pipeline Status")
+            
+            s = st.session_state.pipeline_status
+            steps = {
+                "Upload": "done" if s in ["processing", "ready"] else "", 
+                "Extract": "active" if s == "processing" else ("done" if s == "ready" else ""),
+                "Chunk": "done" if s == "ready" else "", 
+                "Embed": "done" if s == "ready" else "",
+                "Index": "done" if s == "ready" else ""
+            }
+            render_pipeline_horizontal(steps)
+            
+            st.markdown("### 📚 Indexed Files")
+            if st.session_state.processed_files:
+                for f in st.session_state.processed_files:
+                    render_file_item(f["filename"], f["file_size"], f["file_type"])
+            else:
+                st.markdown("<p style='color:gray;'>No files indexed yet.</p>", unsafe_allow_html=True)
+                
+            st.markdown('</div>', unsafe_allow_html=True)
+
+    # ----- TAB 2: USER CHAT QUERIES -----
     with tab_chat:
         st.markdown('<div class="glass-container">', unsafe_allow_html=True)
         st.markdown("""<h3 style="color: rgba(255,255,255,0.85); font-weight: 600; margin-bottom: 5px;">💬 Ask Your Documents</h3>""", unsafe_allow_html=True)
