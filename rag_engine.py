@@ -4,7 +4,11 @@ import numpy as np
 from typing import List, Dict, Tuple, Optional
 from dataclasses import dataclass
 
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+# NEW (Lightweight, no bloated LangChain install needed):
+try:
+    from langchain_text_splitters import RecursiveCharacterTextSplitter
+except ImportError:
+    from langchain.text_splitter import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
 import faiss
 from groq import Groq
