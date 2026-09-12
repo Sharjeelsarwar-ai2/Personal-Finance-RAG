@@ -1,5 +1,8 @@
 import streamlit as st
 from html import escape
+import json
+from pathlib import Path
+from datetime import datetime
 
 from document_processor import DocumentProcessor
 from rag_engine import RAGEngine
@@ -26,6 +29,8 @@ st.set_page_config(
 
 ui.inject_custom_css()
 
+MEMORY_FILE = Path(__file__).with_name("chat_memory.json")
+
 
 # -----------------------------------------------------------------------------
 # Session state
@@ -51,8 +56,81 @@ def init_session_state() -> None:
         if key not in st.session_state:
             st.session_state[key] = value
 
+    # Restore the conversation once per browser session. The JSON file keeps
+    # messages available after a Streamlit rerun or a normal app reload.
+    if not st.session_state.get("memory_loaded", False):
+        try:
+            if MEMORY_FILE.exists():
+                saved_messages = json.loads(MEMORY_FILE.read_text(encoding="utf-8"))
+                if isinstance(saved_messages, list):
+                    st.session_state.messages = saved_messages
+        except (OSError, json.JSONDecodeError):
+            # A damaged or unavailable memory file should never prevent startup.
+            st.session_state.messages = st.session_state.get("messages", [])
+        st.session_state.memory_loaded = True
+
 
 init_session_state()
+
+
+def save_chat_memory() -> None:
+    """Persist chat messages locally without exposing the API key."""
+    try:
+        MEMORY_FILE.write_text(json.dumps(st.session_state.messages, ensure_ascii=False, indent=2), encoding="utf-8")
+    except OSError:
+        # Streamlit Cloud filesystems can be read-only; exports still work.
+        pass
+
+
+def chat_as_markdown() -> str:
+    """Build a portable Markdown transcript."""
+    lines = [
+        "# FinanceRAG Conversation",
+        "",
+        f"_Exported {datetime.now().strftime('%Y-%m-%d %H:%M')}_",
+        "",
+    ]
+    for message in st.session_state.messages:
+        author = "You" if message.get("role") == "user" else "FinanceRAG"
+        lines.extend([f"## {author}", "", str(message.get("content", "")), ""])
+        sources = message.get("sources") or []
+        if sources:
+            lines.extend(["**Sources**", ""] + [f"- {source}" for source in sources[:3]] + [""])
+    return "\n".join(lines)
+
+
+def chat_as_pdf(markdown_text: str) -> bytes:
+    """Create a dependency-free, readable PDF transcript."""
+    import textwrap
+
+    raw_lines = []
+    for line in markdown_text.splitlines():
+        clean = line.replace("#", "").replace("*", "").replace("`", "")
+        raw_lines.extend(textwrap.wrap(clean, width=92) or [""])
+    raw_lines = raw_lines[:110]
+    commands = ["BT", "/F1 10 Tf", "50 750 Td", "14 TL"]
+    for line in raw_lines:
+        safe = line.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+        commands.append(f"({safe}) Tj T*" if line else "T*")
+    commands.append("ET")
+    stream = "\n".join(commands).encode("latin-1", errors="replace")
+    objects = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>",
+        b"<< /Length " + str(len(stream)).encode() + b" >>\nstream\n" + stream + b"\nendstream",
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    ]
+    pdf = bytearray(b"%PDF-1.4\n")
+    offsets = [0]
+    for index, obj in enumerate(objects, start=1):
+        offsets.append(len(pdf))
+        pdf.extend(f"{index} 0 obj\n".encode() + obj + b"\nendobj\n")
+    xref = len(pdf)
+    pdf.extend(f"xref\n0 {len(objects) + 1}\n0000000000 65535 f \n".encode())
+    pdf.extend(b"".join(f"{offset:010d} 00000 n \n".encode() for offset in offsets[1:]))
+    pdf.extend(f"trailer\n<< /Size {len(objects) + 1} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF".encode())
+    return bytes(pdf)
 
 
 def _preview_content(filename: str) -> tuple[str, str]:
@@ -145,6 +223,10 @@ def render_top_bar() -> None:
         if st.button("Reset", type="secondary", use_container_width=True):
             for key in list(st.session_state.keys()):
                 del st.session_state[key]
+            try:
+                MEMORY_FILE.unlink(missing_ok=True)
+            except OSError:
+                pass
             st.rerun()
 
 
@@ -292,6 +374,16 @@ def render_chat_tab() -> None:
     with st.container(border=True):
         st.markdown('<div class="section-kicker">Conversation layer</div><div class="section-title">Ask your documents</div>', unsafe_allow_html=True)
 
+        if st.session_state.messages:
+            markdown_export = chat_as_markdown()
+            export_col_a, export_col_b, export_col_c = st.columns([1, 1, 2.4], gap="small")
+            with export_col_a:
+                st.download_button("Export Markdown", data=markdown_export, file_name="financerag-conversation.md", mime="text/markdown", use_container_width=True)
+            with export_col_b:
+                st.download_button("Export PDF", data=chat_as_pdf(markdown_export), file_name="financerag-conversation.pdf", mime="application/pdf", use_container_width=True)
+            with export_col_c:
+                st.markdown('<div style="color:#78849a;font-size:.68rem;padding:10px 4px;">Conversation memory is restored automatically on reload.</div>', unsafe_allow_html=True)
+
         if not st.session_state.messages:
             st.markdown(
                 '<div style="text-align:center;padding:65px 20px 72px;"><div style="font-size:2.2rem;color:#58d5ff;margin-bottom:15px;">⌁</div><div style="color:#dce6f4;font-size:.9rem;font-weight:700;">Your document conversation starts here</div><div style="color:#78849a;font-size:.76rem;line-height:1.7;margin:8px auto 0;max-width:390px;">Index a report, statement, or spreadsheet to ask contextual questions with source-backed answers.</div></div>',
@@ -306,10 +398,12 @@ def render_chat_tab() -> None:
         query = st.chat_input("Ask about your financial documents…", key="chat_input")
         if query:
             st.session_state.messages.append({"role": "user", "content": query})
+            save_chat_memory()
             chat_history = [{"role": message["role"], "content": message["content"]} for message in st.session_state.messages[-6:]]
             with st.spinner("Searching your knowledge base…"):
                 answer, sources = st.session_state.rag_engine.query(query, chat_history=chat_history[:-1])
             st.session_state.messages.append({"role": "assistant", "content": answer, "sources": sources})
+            save_chat_memory()
             st.rerun()
     else:
         st.info("Index documents in the Source library before starting a conversation.")
