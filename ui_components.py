@@ -55,18 +55,17 @@ def inject_custom_css() -> None:
         .main .block-container > div:first-child { padding-top: 0 !important; }
 
         /* App chrome */
-        /* Keep the first header row compact. Streamlit can stretch the markdown
-           wrapper when the page is rendered inside a tall viewport. */
+        /* Keep the first header row compact without constraining Streamlit's
+           markdown block height, which can cause the hero to overlap widgets. */
         .app-bar {
-            display: flex !important; align-items: center; justify-content: space-between; gap: 20px;
-            width: 100%; height: 64px !important; min-height: 64px !important;
-            padding: 0 0 14px !important; box-sizing: border-box;
+            display: flex !important; align-items: flex-start !important; justify-content: space-between; gap: 20px;
+            width: 100%; height: auto !important; min-height: 0 !important;
+            padding: 4px 0 14px !important; box-sizing: border-box;
             border-bottom: 1px solid rgba(255,255,255,.07); margin: 0 0 18px !important;
         }
         [data-testid="stMarkdownContainer"]:has(> .app-bar) {
-            height: 64px !important; min-height: 64px !important; margin: 0 !important; padding: 0 !important;
+            height: auto !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important;
         }
-        [data-testid="stMarkdownContainer"]:has(> .app-bar) > .app-bar { flex: 0 0 64px !important; }
         [data-testid="stMarkdownContainer"]:has(> .app-bar) + div { margin-top: 0 !important; padding-top: 0 !important; }
         .brand { display: flex; align-items: center; gap: 12px; }
         .brand-mark {
