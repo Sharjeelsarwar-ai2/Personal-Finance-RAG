@@ -55,10 +55,19 @@ def inject_custom_css() -> None:
         .main .block-container > div:first-child { padding-top: 0 !important; }
 
         /* App chrome */
+        /* Keep the first header row compact. Streamlit can stretch the markdown
+           wrapper when the page is rendered inside a tall viewport. */
         .app-bar {
-            display: flex; align-items: center; justify-content: space-between; gap: 20px;
-            padding: 4px 0 16px; border-bottom: 1px solid rgba(255,255,255,.07); margin-bottom: 22px;
+            display: flex !important; align-items: center; justify-content: space-between; gap: 20px;
+            width: 100%; height: 64px !important; min-height: 64px !important;
+            padding: 0 0 14px !important; box-sizing: border-box;
+            border-bottom: 1px solid rgba(255,255,255,.07); margin: 0 0 18px !important;
         }
+        [data-testid="stMarkdownContainer"]:has(> .app-bar) {
+            height: 64px !important; min-height: 64px !important; margin: 0 !important; padding: 0 !important;
+        }
+        [data-testid="stMarkdownContainer"]:has(> .app-bar) > .app-bar { flex: 0 0 64px !important; }
+        [data-testid="stMarkdownContainer"]:has(> .app-bar) + div { margin-top: 0 !important; padding-top: 0 !important; }
         .brand { display: flex; align-items: center; gap: 12px; }
         .brand-mark {
             width: 36px; height: 36px; display: grid; place-items: center; border-radius: 12px;
@@ -120,14 +129,25 @@ def inject_custom_css() -> None:
 
         /* Chat */
         .chat-stream { padding: 4px 0 8px; }
-        .user-message, .assistant-message { position: relative; padding: 17px 20px; margin: 16px 0; line-height: 1.68; font-size: .88rem; }
-        .user-message { margin-left: 14%; color: #e9f8ff; background: linear-gradient(135deg, rgba(88,213,255,.14), rgba(88,213,255,.045)); border: 1px solid rgba(88,213,255,.2); border-radius: 19px 19px 5px 19px; }
-        .assistant-message { margin-right: 8%; color: #e9edf7; background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.095); border-radius: 19px 19px 19px 5px; }
+        .user-message, .assistant-message { position: relative; display: flex; gap: 12px; padding: 17px 20px; margin: 16px 0; line-height: 1.68; font-size: .88rem; overflow: hidden; }
+        .user-message::before, .assistant-message::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--cyan); opacity: .8; }
+        .user-message { margin-left: 14%; color: #e9f8ff; background: linear-gradient(135deg, rgba(88,213,255,.16), rgba(88,213,255,.045)); border: 1px solid rgba(88,213,255,.22); border-radius: 19px 19px 5px 19px; box-shadow: 0 10px 30px rgba(0,0,0,.12), inset 0 1px rgba(255,255,255,.08); }
+        .assistant-message { margin-right: 8%; color: #e9edf7; background: linear-gradient(135deg, rgba(255,255,255,.075), rgba(255,255,255,.025)); border: 1px solid rgba(255,255,255,.11); border-radius: 19px 19px 19px 5px; box-shadow: 0 10px 30px rgba(0,0,0,.14), inset 0 1px rgba(255,255,255,.06); }
+        .assistant-message::before { background: var(--mint); }
+        .message-avatar { display: grid; place-items: center; width: 29px; height: 29px; flex: 0 0 29px; margin-top: 1px; border-radius: 10px; color: #07111d; font-size: .72rem; font-weight: 800; background: linear-gradient(135deg, var(--cyan), #a7efff); box-shadow: 0 0 18px rgba(88,213,255,.2); }
+        .assistant-message .message-avatar { color: #062018; background: linear-gradient(135deg, var(--mint), #b7f6df); box-shadow: 0 0 18px rgba(104,230,189,.18); }
+        .message-content { min-width: 0; flex: 1; }
         .message-label { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; font-family: 'DM Mono', monospace; font-size: .63rem; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; }
         .user-label { color: var(--cyan); } .assistant-label { color: var(--mint); }
         .source-box { margin-top: 16px; padding: 12px 14px; color: #a9b8c9; font-size: .73rem; background: rgba(104,230,189,.055); border: 1px solid rgba(104,230,189,.15); border-radius: 13px; }
         .source-box strong { color: var(--mint); font-size: .65rem; letter-spacing: .06em; text-transform: uppercase; }
         .source-box ul { margin: 7px 0 0; padding-left: 18px; } .source-box li { margin: 3px 0; }
+
+        /* Document preview dialog */
+        [data-testid="stDialog"] [role="dialog"] { max-width: 820px; background: linear-gradient(145deg, rgba(20,29,49,.98), rgba(9,14,28,.98)); border: 1px solid rgba(88,213,255,.22); border-radius: 22px; box-shadow: 0 24px 90px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.04) inset; }
+        [data-testid="stDialog"] [role="dialog"] h2 { color: var(--ink); font-size: 1rem; }
+        .preview-meta { color: var(--muted); font-family: 'DM Mono', monospace; font-size: .65rem; letter-spacing: .04em; }
+        .preview-text { max-height: 430px; overflow-y: auto; padding: 18px; color: #dbe6f3; background: rgba(0,0,0,.2); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; font-size: .82rem; line-height: 1.75; white-space: pre-wrap; }
         .chat-bottom-spacer { height: 125px; }
         div[data-testid="stChatInput"] { position: fixed !important; z-index: 999 !important; bottom: 0 !important; left: 0 !important; width: 100vw !important; padding: 30px 2rem 23px !important; background: linear-gradient(0deg, #080c18 40%, rgba(8,12,24,0) 100%) !important; }
         div[data-testid="stChatInput"] > div { width: min(900px, 100%) !important; margin: auto !important; background: rgba(17,24,42,.9) !important; border: 1px solid rgba(88,213,255,.3) !important; border-radius: 17px !important; box-shadow: 0 14px 40px rgba(0,0,0,.42), 0 0 0 4px rgba(88,213,255,.035) !important; backdrop-filter: blur(20px); }
@@ -212,7 +232,7 @@ def render_chat_message(role: str, content: str, sources: Optional[List[str]] = 
     """Render a user or assistant message, optionally with cited sources."""
     if role == "user":
         st.markdown(
-            f'<div class="user-message"><div class="message-label user-label">◉ &nbsp; You</div>{content}</div>',
+            f'<div class="user-message"><div class="message-avatar">U</div><div class="message-content"><div class="message-label user-label">You</div><div>{content}</div></div></div>',
             unsafe_allow_html=True,
         )
         return
@@ -222,7 +242,7 @@ def render_chat_message(role: str, content: str, sources: Optional[List[str]] = 
         source_items = "".join(f"<li>{escape(str(source))}</li>" for source in sources[:3])
         source_html = f'<div class="source-box"><strong>Referenced sources</strong><ul>{source_items}</ul></div>'
     st.markdown(
-        f'<div class="assistant-message"><div class="message-label assistant-label">✦ &nbsp; FinanceRAG</div>{content}{source_html}</div>',
+        f'<div class="assistant-message"><div class="message-avatar">✦</div><div class="message-content"><div class="message-label assistant-label">FinanceRAG</div><div>{content}</div>{source_html}</div></div>',
         unsafe_allow_html=True,
     )
 
