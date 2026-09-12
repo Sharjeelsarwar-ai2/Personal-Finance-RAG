@@ -258,7 +258,23 @@ def render_data_tab() -> None:
             ui.render_pipeline_horizontal(steps)
             st.markdown('<div class="section-kicker" style="margin-top:18px;">Indexed files</div>', unsafe_allow_html=True)
             if st.session_state.processed_files:
-                for file_summary in st.session_state.processed_files:
+                search_query = st.text_input(
+                    "Search indexed documents",
+                    placeholder="Search by filename or file type…",
+                    key="document_filter",
+                    label_visibility="collapsed",
+                ).strip().lower()
+                visible_files = [
+                    file_summary for file_summary in st.session_state.processed_files
+                    if not search_query
+                    or search_query in str(file_summary.get("filename", "")).lower()
+                    or search_query in str(file_summary.get("file_type", "")).lower()
+                ]
+                st.markdown(
+                    f'<div class="preview-meta" style="margin:10px 0 8px;">{len(visible_files)} of {len(st.session_state.processed_files)} documents</div>',
+                    unsafe_allow_html=True,
+                )
+                for file_summary in visible_files:
                     file_col, action_col = st.columns([5, 1.15], vertical_alignment="center")
                     with file_col:
                         ui.render_file_item(file_summary["filename"], file_summary["file_size"], file_summary["file_type"])
@@ -266,6 +282,8 @@ def render_data_tab() -> None:
                         if st.button("Preview", key=f"preview_{file_summary['filename']}", type="secondary", use_container_width=True):
                             st.session_state.selected_preview = file_summary["filename"]
                             st.rerun()
+                if not visible_files:
+                    st.markdown('<div style="color:#68748a;font-size:.78rem;padding:22px 0;text-align:center;">No indexed documents match your search.</div>', unsafe_allow_html=True)
             else:
                 st.markdown('<div style="color:#68748a;font-size:.78rem;padding:24px 0;text-align:center;">Your indexed files will appear here.</div>', unsafe_allow_html=True)
 
