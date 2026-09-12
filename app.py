@@ -1,4 +1,5 @@
 import streamlit as st
+from html import escape
 
 from document_processor import DocumentProcessor
 from rag_engine import RAGEngine
@@ -44,6 +45,7 @@ def init_session_state() -> None:
         "is_indexed": False,
         "show_settings": False,
         "selected_model": "openai/gpt-oss-120b",
+        "selected_preview": None,
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -51,6 +53,46 @@ def init_session_state() -> None:
 
 
 init_session_state()
+
+
+def _preview_content(filename: str) -> tuple[str, str]:
+    """Find extracted text for a selected indexed document."""
+    processor = st.session_state.doc_processor
+    if not processor:
+        return "", "No extracted text is available yet."
+    for document in getattr(processor, "processed_docs", []):
+        if document.get("filename") == filename:
+            text = document.get("text_content", "") or ""
+            return text, "Extracted text preview"
+    return "", "The document is indexed, but its extracted text could not be located."
+
+
+def _preview_dialog_body() -> None:
+    """Render the selected document preview inside a Streamlit dialog."""
+    filename = st.session_state.get("selected_preview")
+    if not filename:
+        return
+    text, message = _preview_content(filename)
+    st.markdown('<div class="section-kicker">Knowledge base / document preview</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="section-title">{escape(filename)}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="preview-meta" style="margin:7px 0 16px;">{message} &nbsp;·&nbsp; read-only view</div>', unsafe_allow_html=True)
+    if text:
+        st.markdown(f'<div class="preview-text">{escape(text[:30000])}</div>', unsafe_allow_html=True)
+        if len(text) > 30000:
+            st.caption("Preview limited to the first 30,000 characters.")
+    else:
+        st.info("No readable text was extracted from this file.")
+    if st.button("Close preview", type="secondary", use_container_width=True):
+        st.session_state.selected_preview = None
+        st.rerun()
+
+
+if hasattr(st, "dialog"):
+    _preview_dialog = st.dialog("Document preview")(_preview_dialog_body)
+else:
+    def _preview_dialog() -> None:
+        with st.expander("Document preview", expanded=True):
+            _preview_dialog_body()
 
 
 # -----------------------------------------------------------------------------
@@ -217,7 +259,13 @@ def render_data_tab() -> None:
             st.markdown('<div class="section-kicker" style="margin-top:18px;">Indexed files</div>', unsafe_allow_html=True)
             if st.session_state.processed_files:
                 for file_summary in st.session_state.processed_files:
-                    ui.render_file_item(file_summary["filename"], file_summary["file_size"], file_summary["file_type"])
+                    file_col, action_col = st.columns([5, 1.15], vertical_alignment="center")
+                    with file_col:
+                        ui.render_file_item(file_summary["filename"], file_summary["file_size"], file_summary["file_type"])
+                    with action_col:
+                        if st.button("Preview", key=f"preview_{file_summary['filename']}", type="secondary", use_container_width=True):
+                            st.session_state.selected_preview = file_summary["filename"]
+                            st.rerun()
             else:
                 st.markdown('<div style="color:#68748a;font-size:.78rem;padding:24px 0;text-align:center;">Your indexed files will appear here.</div>', unsafe_allow_html=True)
 
@@ -259,6 +307,9 @@ def main() -> None:
         render_data_tab()
     with chat_tab:
         render_chat_tab()
+
+    if st.session_state.get("selected_preview"):
+        _preview_dialog()
 
 
 if __name__ == "__main__":
