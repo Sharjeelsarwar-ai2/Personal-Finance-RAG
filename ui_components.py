@@ -49,12 +49,15 @@ def inject_custom_css() -> None:
         }
         #MainMenu, footer, header, .stDeployButton { display: none !important; }
         section[data-testid="stSidebar"], div[data-testid="collapsedControl"] { display: none !important; }
-        .main .block-container { max-width: 1260px; padding: 1.25rem 2rem 5rem !important; }
+        /* Streamlit adds a generous default top inset; keep the app content close to the viewport. */
+        [data-testid="stAppViewContainer"] > .main { margin-top: 0 !important; }
+        [data-testid="stAppViewContainer"] .main .block-container { max-width: 1260px; padding: .35rem 2rem 5rem !important; }
+        .main .block-container > div:first-child { padding-top: 0 !important; }
 
         /* App chrome */
         .app-bar {
             display: flex; align-items: center; justify-content: space-between; gap: 20px;
-            padding: 12px 0 26px; border-bottom: 1px solid rgba(255,255,255,.07); margin-bottom: 34px;
+            padding: 4px 0 16px; border-bottom: 1px solid rgba(255,255,255,.07); margin-bottom: 22px;
         }
         .brand { display: flex; align-items: center; gap: 12px; }
         .brand-mark {
@@ -73,7 +76,7 @@ def inject_custom_css() -> None:
         .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 10px var(--mint); }
 
         /* Hero */
-        .hero { max-width: 810px; margin: 0 auto 34px; text-align: center; }
+        .hero { max-width: 810px; margin: 0 auto 24px; text-align: center; }
         .eyebrow { color: var(--cyan); font-family: 'DM Mono', monospace; font-size: .67rem; letter-spacing: .18em; text-transform: uppercase; }
         .hero h1 { margin: 12px 0 12px; font-size: clamp(2rem, 4.3vw, 3.75rem); line-height: 1.05; letter-spacing: -.065em; font-weight: 800; }
         .hero h1 span { background: linear-gradient(105deg, #fff 8%, #b7eaff 46%, #b6aaff 92%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
@@ -148,7 +151,7 @@ def inject_custom_css() -> None:
         .step-name-h { color: var(--faint); font-family: 'DM Mono', monospace; font-size: .59rem; text-transform: uppercase; letter-spacing: .04em; } .done .step-name-h { color: var(--mint); } .active .step-name-h { color: var(--cyan); }
 
         @media (max-width: 720px) {
-            .main .block-container { padding: .9rem 1rem 4rem !important; }
+            [data-testid="stAppViewContainer"] .main .block-container { padding: .25rem 1rem 4rem !important; }
             .app-bar { margin-bottom: 24px; } .status-pill { display: none; }
             .hero { margin-bottom: 25px; } .hero h1 { font-size: 2.25rem; }
             .user-message { margin-left: 3%; } .assistant-message { margin-right: 3%; }
