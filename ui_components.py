@@ -85,6 +85,12 @@ def inject_custom_css() -> None:
             border: 1px solid var(--line); border-radius: 22px; box-shadow: 0 18px 55px rgba(0,0,0,.22), inset 0 1px rgba(255,255,255,.04);
             backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
         }
+        div[data-testid="stVerticalBlockBorderWrapper"] {
+            background: linear-gradient(145deg, rgba(255,255,255,.075), rgba(255,255,255,.025));
+            border: 1px solid var(--line); border-radius: 22px; padding: 4px 18px 18px;
+            box-shadow: 0 18px 55px rgba(0,0,0,.22), inset 0 1px rgba(255,255,255,.04);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+        }
         .section-kicker { color: var(--faint); font-family: 'DM Mono', monospace; font-size: .64rem; letter-spacing: .14em; text-transform: uppercase; }
         .section-title { color: var(--ink); font-size: 1rem; font-weight: 700; margin: 6px 0 0; }
 
