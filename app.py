@@ -2,15 +2,14 @@ import streamlit as st
 
 from document_processor import DocumentProcessor
 from rag_engine import RAGEngine
-from ui_components import (
-    inject_custom_css,
-    render_header,
-    render_file_item,
-    render_chat_message,
-    render_chat_spacer,
-    render_pipeline_horizontal,
-    render_upload_zone,
-)
+try:
+    import ui_components as ui
+except ImportError as exc:
+    raise ImportError(
+        "FinanceRAG could not load ui_components.py. Make sure ui_components.py "
+        "is uploaded to the same project directory as app.py and that it imports "
+        "without errors. Original error: " + str(exc)
+    ) from exc
 
 
 # -----------------------------------------------------------------------------
@@ -24,7 +23,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-inject_custom_css()
+ui.inject_custom_css()
 
 
 # -----------------------------------------------------------------------------
@@ -206,7 +205,7 @@ def render_data_tab() -> None:
     with upload_col:
         st.markdown('<div class="glass-card" style="padding:22px 24px;min-height:390px;">', unsafe_allow_html=True)
         st.markdown('<div class="section-kicker">01 / Source library</div><div class="section-title">Add financial documents</div>', unsafe_allow_html=True)
-        render_upload_zone()
+        ui.render_upload_zone()
         uploaded_files = st.file_uploader(
             "Choose documents",
             type=["pdf", "csv", "xlsx", "txt", "docx"],
@@ -232,11 +231,11 @@ def render_data_tab() -> None:
             "Index": "done" if current_status == "ready" else "",
             "Ready": "done" if current_status == "ready" else "",
         }
-        render_pipeline_horizontal(steps)
+        ui.render_pipeline_horizontal(steps)
         st.markdown('<div class="section-kicker" style="margin-top:18px;">Indexed files</div>', unsafe_allow_html=True)
         if st.session_state.processed_files:
             for file_summary in st.session_state.processed_files:
-                render_file_item(file_summary["filename"], file_summary["file_size"], file_summary["file_type"])
+                ui.render_file_item(file_summary["filename"], file_summary["file_size"], file_summary["file_type"])
         else:
             st.markdown('<div style="color:#68748a;font-size:.78rem;padding:24px 0;text-align:center;">Your indexed files will appear here.</div>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
@@ -253,10 +252,10 @@ def render_chat_tab() -> None:
         )
     else:
         for message in st.session_state.messages:
-            render_chat_message(message["role"], message["content"], message.get("sources"))
+            ui.render_chat_message(message["role"], message["content"], message.get("sources"))
 
     st.markdown('</div>', unsafe_allow_html=True)
-    render_chat_spacer()
+    ui.render_chat_spacer()
 
     if st.session_state.is_indexed:
         query = st.chat_input("Ask about your financial documents…", key="chat_input")
@@ -272,7 +271,7 @@ def render_chat_tab() -> None:
 
 
 def main() -> None:
-    render_header()
+    ui.render_header()
     render_top_bar()
     render_settings_panel()
 
